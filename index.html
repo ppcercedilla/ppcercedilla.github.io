@@ -295,16 +295,33 @@ footer a{color:rgba(255,255,255,.7)}
   function abrirBuzon(){document.getElementById('buzonOverlay').classList.add('open');}
   function cerrarBuzon(){document.getElementById('buzonOverlay').classList.remove('open');document.getElementById('buzonOk').style.display='none';document.getElementById('buzonForm').style.display='block';}
   document.getElementById('buzonOverlay').addEventListener('click',function(e){if(e.target===this)cerrarBuzon();});
-  function enviarBuzon(){
+  async function enviarBuzon(){
     const nombre=document.getElementById('bNombre').value.trim();
     const contacto=document.getElementById('bContacto').value.trim();
     const mensaje=document.getElementById('bMensaje').value.trim();
     if(!mensaje){alert('Por favor escribe tu mensaje.');return;}
-    const asunto=encodeURIComponent('Buzón PP Cercedilla – '+(nombre||'Anónimo'));
-    const cuerpo=encodeURIComponent('Nombre: '+(nombre||'–')+'\nContacto: '+(contacto||'–')+'\n\nMensaje:\n'+mensaje);
-    window.location.href='mailto:ppcercedillasg@gmail.com?subject='+asunto+'&body='+cuerpo;
-    document.getElementById('buzonForm').style.display='none';
-    document.getElementById('buzonOk').style.display='block';
+    const btn=document.querySelector('.enviar');
+    btn.textContent='Enviando...';
+    btn.disabled=true;
+    try{
+        const res=await fetch('https://formspree.io/f/xvzjwdqe',{
+            method:'POST',
+            headers:{'Content-Type':'application/json','Accept':'application/json'},
+            body:JSON.stringify({nombre:nombre||'Anónimo',contacto:contacto||'–',mensaje:mensaje})
+        });
+        if(res.ok){
+            document.getElementById('buzonForm').style.display='none';
+            document.getElementById('buzonOk').style.display='block';
+        } else {
+            alert('Ha habido un problema al enviar. Inténtalo de nuevo.');
+            btn.textContent='Enviar mensaje';
+            btn.disabled=false;
+        }
+    } catch(e){
+        alert('Error de conexión. Inténtalo de nuevo.');
+        btn.textContent='Enviar mensaje';
+        btn.disabled=false;
+    }
   }
 </script>
 </body>
