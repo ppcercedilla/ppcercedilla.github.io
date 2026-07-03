@@ -282,16 +282,17 @@ footer a{color:rgba(255,255,255,.7)}
     <button class="buzon-cerrar" onclick="cerrarBuzon()" aria-label="Cerrar">✕</button>
     <h3>✉️ Buzón de Sugerencias</h3>
     <p>Déjanos tu mensaje y te responderemos lo antes posible.</p>
-    <div id="buzonForm">
+    <form id="buzonForm" action="https://formspree.io/f/xrewrlln" method="POST">
       <label>Tu nombre</label>
-      <input type="text" id="bNombre" placeholder="Nombre (opcional)"/>
+      <input type="text" name="nombre" placeholder="Nombre (opcional)"/>
       <label>Tu email o teléfono</label>
-      <input type="text" id="bContacto" placeholder="Para que podamos responderte"/>
+      <input type="text" name="contacto" placeholder="Para que podamos responderte"/>
       <label>Tu mensaje</label>
-      <textarea id="bMensaje" placeholder="Escribe aquí tu sugerencia, pregunta o comentario..."></textarea>
-      <button class="enviar" onclick="enviarBuzon()">Enviar mensaje</button>
-    </div>
-    <div class="buzon-ok" id="buzonOk">✅ Mensaje enviado. ¡Gracias por contactar con nosotros!</div>
+      <textarea name="mensaje" placeholder="Escribe aquí tu sugerencia, pregunta o comentario..." required></textarea>
+      <input type="hidden" name="_subject" value="Buzón PP Cercedilla"/>
+      <button type="submit" class="enviar">Enviar mensaje</button>
+    </form>
+    <div class="buzon-ok" id="buzonOk" style="display:none">✅ Mensaje enviado. ¡Gracias!</div>
   </div>
 </div>
 
@@ -316,34 +317,38 @@ footer a{color:rgba(255,255,255,.7)}
   function abrirBuzon(){document.getElementById('buzonOverlay').classList.add('open');}
   function cerrarBuzon(){document.getElementById('buzonOverlay').classList.remove('open');document.getElementById('buzonOk').style.display='none';document.getElementById('buzonForm').style.display='block';}
   document.getElementById('buzonOverlay').addEventListener('click',function(e){if(e.target===this)cerrarBuzon();});
-  async function enviarBuzon(){
-    const nombre=document.getElementById('bNombre').value.trim();
-    const contacto=document.getElementById('bContacto').value.trim();
-    const mensaje=document.getElementById('bMensaje').value.trim();
-    if(!mensaje){alert('Por favor escribe tu mensaje.');return;}
-    const btn=document.querySelector('.enviar');
-    btn.textContent='Enviando...';
-    btn.disabled=true;
-    try{
-        const res=await fetch('https://formspree.io/f/xrewrlln',{
-            method:'POST',
-            headers:{'Content-Type':'application/json','Accept':'application/json'},
-            body:JSON.stringify({nombre:nombre||'Anónimo',contacto:contacto||'–',mensaje:mensaje})
-        });
-        if(res.ok){
-            document.getElementById('buzonForm').style.display='none';
-            document.getElementById('buzonOk').style.display='block';
-        } else {
+  // Gestión del formulario nativo Formspree
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('buzonForm');
+    if(form) {
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = form.querySelector('.enviar');
+        btn.textContent = 'Enviando...';
+        btn.disabled = true;
+        const data = new FormData(form);
+        try {
+          const res = await fetch(form.action, {
+            method: 'POST',
+            body: data,
+            headers: { 'Accept': 'application/json' }
+          });
+          if(res.ok) {
+            form.style.display = 'none';
+            document.getElementById('buzonOk').style.display = 'block';
+          } else {
             alert('Ha habido un problema al enviar. Inténtalo de nuevo.');
-            btn.textContent='Enviar mensaje';
-            btn.disabled=false;
+            btn.textContent = 'Enviar mensaje';
+            btn.disabled = false;
+          }
+        } catch(e) {
+          alert('Error de conexión. Inténtalo de nuevo.');
+          btn.textContent = 'Enviar mensaje';
+          btn.disabled = false;
         }
-    } catch(e){
-        alert('Error de conexión. Inténtalo de nuevo.');
-        btn.textContent='Enviar mensaje';
-        btn.disabled=false;
+      });
     }
-  }
+  });
 </script>
 </body>
 </html>
